@@ -25,6 +25,7 @@ model Admin {
   updatedAt           DateTime             @updatedAt @map("updated_at")
   sessions            AdminSession[]
   passwordResetTokens PasswordResetToken[]
+  auditLogs           AuditLog[]
 
   @@map("admins")
 }
@@ -54,4 +55,34 @@ model PasswordResetToken {
 
   @@index([adminId])
   @@map("password_reset_tokens")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  adminId    String?  @map("admin_id") @db.Uuid
+  admin      Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id") @db.Uuid
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Media {
+  id         String   @id @default(uuid()) @db.Uuid
+  fileName   String   @map("file_name")
+  altText    String   @map("alt_text")
+  storageKey String   @unique @map("storage_key")
+  mimeType   String   @map("mime_type")
+  sizeBytes  Int      @map("size_bytes")
+  width      Int
+  height     Int
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("media")
 }

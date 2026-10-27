@@ -9,23 +9,31 @@ import { RateLimitModule } from './common/rate-limit/rate-limit.module.js';
 import { validateEnvironment } from './config/environment.js';
 import { DatabaseModule } from './infrastructure/database/database.module.js';
 import { MailModule } from './infrastructure/mail/mail.module.js';
+import { StorageModule } from './infrastructure/storage/storage.module.js';
+import { AuditInterceptor } from './modules/audit/audit.interceptor.js';
+import { AuditModule } from './modules/audit/audit.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AuthGuard } from './modules/auth/guards/auth.guard.js';
 import { OriginGuard } from './modules/auth/guards/origin.guard.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { MediaModule } from './modules/media/media.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
     DatabaseModule,
     MailModule,
+    StorageModule,
     RateLimitModule,
+    AuditModule,
     AuthModule,
+    MediaModule,
     HealthModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
     { provide: APP_INTERCEPTOR, useClass: ResponseEnvelopeInterceptor },
+    { provide: APP_INTERCEPTOR, useExisting: AuditInterceptor },
     { provide: APP_PIPE, useFactory: createValidationPipe },
     { provide: APP_GUARD, useClass: OriginGuard },
     { provide: APP_GUARD, useClass: AuthGuard },

@@ -1,0 +1,87 @@
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
+import request from 'supertest';
+import { AppModule } from '../../src/app.module.js';
+import { configureApp } from '../../src/app.setup.js';
+import { AppThrottlerGuard } from '../../src/common/rate-limit/app-throttler.guard.js';
+import { PrismaService } from '../../src/infrastructure/database/prisma.service.js';
+import { MailSender } from '../../src/infrastructure/mail/mail-sender.js';
+import { AdminRepository } from '../../src/modules/auth/admin.repository.js';
+import { ScryptPasswordHasher } from '../../src/modules/auth/security/scrypt-password-hasher.js';
+import { SessionRepository } from '../../src/modules/auth/session.repository.js';
+import { AuditRepository } from '../../src/modules/audit/audit.repository.js';
+import { CapturingMailSender, InMemoryAdminRepository, InMemorySessionRepository } from './in-memory-auth.js';
+import { InMemoryAuditRepository } from './in-memory-content.js';
+
+export const ORIGIN = 'http://localhost:3000';
+export const ADMIN_EMAIL = 'admin@zoycoders.com';
+export const ADMIN_PASSWORD = 'correct-password-1';
+
+export interface AdminClient {
+  get(url: string): request.Test;
+  post(url: string): request.Test;
+  patch(url: string): request.Test;
+  delete(url: string): request.Test;
+}
+
+export interface TestApp {
+  app: NestExpressApplication;
+  admins: InMemoryAdminRepository;
+  audit: InMemoryAuditRepository;
+  mail: CapturingMailSender;
+  admin: AdminClient;
+  anonymous: () => ReturnType<typeof request>;
+  close: () => Promise<void>;
+}
+
+export async function createTestApp(
+  customize: (builder: TestingModuleBuilder) => TestingModuleBuilder = (builder) => builder,
+): Promise<TestApp> {
+  const admins = new InMemoryAdminRepository();
+  const audit = new InMemoryAuditRepository(admins);
+  const mail = new CapturingMailSender();
+  await admins.create({
+    name: 'Zoy Admin',
+    email: ADMIN_EMAIL,
+    passwordHash: await new ScryptPasswordHasher().hash(ADMIN_PASSWORD),
+  });
+
+  const builder = Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(AppThrottlerGuard)
+    .useValue({ canActivate: () => true })
+    .overrideProvider(PrismaService)
+    .useValue({ isReachable: async () => true })
+    .overrideProvider(AdminRepository)
+    .useValue(admins)
+    .overrideProvider(SessionRepository)
+    .useValue(new InMemorySessionRepository(admins))
+    .overrideProvider(AuditRepository)
+    .useValue(audit)
+    .overrideProvider(MailSender)
+    .useValue(mail);
+
+  const moduleRef = await customize(builder).compile();
+  const app = moduleRef.createNestApplication<NestExpressApplication>();
+  configureApp(app);
+  await app.init();
+
+  const server = app.getHttpServer();
+  const signedIn = await request(server).post('/api/v1/auth/login').send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+  const cookie = (signedIn.headers['set-cookie'] as unknown as string[]).map((c) => c.split(';')[0]).join('; ');
+  const authorised = (test: request.Test): request.Test => test.set('Cookie', cookie).set('Origin', ORIGIN);
+
+  return {
+    app,
+    admins,
+    audit,
+    mail,
+    admin: {
+      get: (url) => authorised(request(server).get(url)),
+      post: (url) => authorised(request(server).post(url)),
+      patch: (url) => authorised(request(server).patch(url)),
+      delete: (url) => authorised(request(server).delete(url)),
+    },
+    anonymous: () => request(server),
+    close: () => app.close(),
+  };
+}

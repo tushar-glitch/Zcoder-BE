@@ -67,6 +67,13 @@ export class Environment {
   @IsString()
   @IsNotEmpty()
   MAIL_FROM: string;
+
+  @IsString()
+  @IsNotEmpty()
+  UPLOAD_DIR: string = './uploads';
+
+  @IsUrl({ require_tld: false })
+  MEDIA_BASE_URL: string;
 }
 
 export function validateEnvironment(raw: Record<string, unknown>): Environment {
