@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Request, Response } from 'express';
+import { hasErrorExtras } from '../exceptions/error-extras.js';
 
 const ERROR_CODES: Record<number, string> = {
   [HttpStatus.BAD_REQUEST]: 'VALIDATION_ERROR',
@@ -36,6 +37,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const message = isServerError || !(exception instanceof HttpException) ? INTERNAL_ERROR_MESSAGE : exception.message;
 
     response.setHeader('x-request-id', requestId);
-    response.status(status).json({ error: { code, message, requestId } });
+    const extras = hasErrorExtras(exception) ? exception.extras : {};
+
+    response.status(status).json({ error: { code, message, ...extras, requestId } });
   }
 }

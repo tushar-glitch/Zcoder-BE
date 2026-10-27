@@ -1,5 +1,17 @@
 import { plainToInstance } from 'class-transformer';
-import { IsEnum, IsInt, IsUrl, Max, Min, validateSync } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Max,
+  Min,
+  MinLength,
+  ValidateIf,
+  validateSync,
+} from 'class-validator';
 
 enum NodeEnvironment {
   Development = 'development',
@@ -21,6 +33,40 @@ export class Environment {
 
   @IsUrl({ protocols: ['postgres', 'postgresql'], require_tld: false })
   DATABASE_URL: string;
+
+  @IsString()
+  @MinLength(32)
+  JWT_SECRET: string;
+
+  @IsString()
+  @MinLength(32)
+  INTERNAL_SECRET: string;
+
+  @IsInt()
+  @Min(0)
+  TRUST_PROXY_HOPS: number = 1;
+
+  @ValidateIf((env: Environment) => env.NODE_ENV === NodeEnvironment.Production || env.SMTP_HOST !== undefined)
+  @IsString()
+  @IsNotEmpty()
+  SMTP_HOST?: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  SMTP_PORT: number = 587;
+
+  @IsOptional()
+  @IsString()
+  SMTP_USER?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_PASSWORD?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  MAIL_FROM: string;
 }
 
 export function validateEnvironment(raw: Record<string, unknown>): Environment {
