@@ -18,6 +18,9 @@ export class Environment {
 
   @IsUrl({ require_tld: false })
   APP_URL: string;
+
+  @IsUrl({ protocols: ['postgres', 'postgresql'], require_tld: false })
+  DATABASE_URL: string;
 }
 
 export function validateEnvironment(raw: Record<string, unknown>): Environment {

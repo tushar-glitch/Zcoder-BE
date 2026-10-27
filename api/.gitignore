@@ -7,3 +7,4 @@ coverage
 !.env.example
 overview.txt
 skill.md
+src/generated

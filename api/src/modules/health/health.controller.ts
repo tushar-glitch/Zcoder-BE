@@ -8,7 +8,7 @@ export class HealthController {
 
   @Get()
   @Header('Cache-Control', 'no-store')
-  check(): HealthStatus {
+  check(): Promise<HealthStatus> {
     return this.healthService.check();
   }
 }
