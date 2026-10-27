@@ -47,7 +47,7 @@ export interface BlogReferences {
 
 export type BlogOrderBy = Partial<Record<'updatedAt' | 'createdAt' | 'publishedAt' | 'title', SortDirection>>;
 
-const INCLUDE = {
+export const BLOG_INCLUDE = {
   category: true,
   author: { include: { avatar: true } },
   coverImage: true,
@@ -62,11 +62,11 @@ export class BlogsRepository {
   constructor(private readonly database: PrismaService) {}
 
   create(data: NewBlog, tagIds: string[]): Promise<BlogWithRelations> {
-    return this.database.blog.create({ data: { ...data, tags: { create: tagLinks(tagIds) } }, include: INCLUDE });
+    return this.database.blog.create({ data: { ...data, tags: { create: tagLinks(tagIds) } }, include: BLOG_INCLUDE });
   }
 
   findById(id: string): Promise<BlogWithRelations | null> {
-    return this.database.blog.findUnique({ where: { id }, include: INCLUDE });
+    return this.database.blog.findUnique({ where: { id }, include: BLOG_INCLUDE });
   }
 
   async findPage(
@@ -86,7 +86,7 @@ export class BlogsRepository {
       }),
     };
     const [items, total] = await this.database.$transaction([
-      this.database.blog.findMany({ where, orderBy, include: INCLUDE, ...toSkipTake(page) }),
+      this.database.blog.findMany({ where, orderBy, include: BLOG_INCLUDE, ...toSkipTake(page) }),
       this.database.blog.count({ where }),
     ]);
     return { items, total };
@@ -103,7 +103,7 @@ export class BlogsRepository {
       return transaction.blog.update({
         where: { id },
         data: { ...data, ...(tagIds && { tags: { deleteMany: {}, create: tagLinks(tagIds) } }) },
-        include: INCLUDE,
+        include: BLOG_INCLUDE,
       });
     });
   }

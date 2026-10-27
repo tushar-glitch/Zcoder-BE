@@ -38,6 +38,18 @@ export interface AdminBlog extends AdminBlogRow {
   createdAt: Date;
 }
 
+export interface BlogSummary {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  coverImage: MediaRef | null;
+  category: TaxonomyResponse | null;
+  author: AuthorResponse | null;
+  readingTimeMin: number;
+  publishedAt: Date | null;
+}
+
 export interface PublicBlogDetail {
   id: string;
   title: string;
@@ -90,6 +102,20 @@ export class BlogPresenter {
       ogImage: this.media.refOrNull(blog.ogImage),
       readingTimeMin: blog.readingTimeMin,
       createdAt: blog.createdAt,
+    };
+  }
+
+  summary(blog: BlogWithRelations): BlogSummary {
+    return {
+      id: blog.id,
+      title: blog.title,
+      slug: blog.slug,
+      excerpt: blog.excerpt,
+      coverImage: this.media.refOrNull(blog.coverImage),
+      category: blog.category && this.taxonomy.taxonomy(blog.category),
+      author: blog.author && this.taxonomy.author(blog.author),
+      readingTimeMin: blog.readingTimeMin,
+      publishedAt: blog.publishedAt,
     };
   }
 

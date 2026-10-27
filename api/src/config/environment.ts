@@ -68,6 +68,10 @@ export class Environment {
   @IsNotEmpty()
   MAIL_FROM: string;
 
+  @IsOptional()
+  @IsString()
+  ADMIN_NOTIFY_EMAIL?: string;
+
   @IsString()
   @IsNotEmpty()
   UPLOAD_DIR: string = './uploads';

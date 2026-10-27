@@ -10,6 +10,7 @@ export default defineConfig({
       JWT_SECRET: 'a-test-secret-that-is-at-least-32-chars',
       INTERNAL_SECRET: 'an-internal-test-secret-of-32-chars-min',
       MAIL_FROM: 'ZoyCoders <no-reply@zoycoders.test>',
+      ADMIN_NOTIFY_EMAIL: 'owner@zoycoders.test, sales@zoycoders.test',
       MEDIA_BASE_URL: 'http://localhost:4000/uploads',
       REVALIDATE_SECRET: 'a-revalidate-secret-of-at-least-32-chars',
     },

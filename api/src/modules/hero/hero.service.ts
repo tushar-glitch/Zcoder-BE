@@ -29,7 +29,7 @@ export interface HeroResponse {
 
 const REVALIDATED_TAGS = ['hero'];
 
-const toCta = (label: string | null, url: string | null): CtaLink | null => (label && url ? { label, url } : null);
+export const toCta = (label: string | null, url: string | null): CtaLink | null => (label && url ? { label, url } : null);
 
 @Injectable()
 export class HeroService {

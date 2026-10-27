@@ -38,7 +38,7 @@ export interface ProjectFilters {
 
 export type ProjectOrderBy = Partial<Record<'sortOrder' | 'createdAt' | 'title' | 'publishedAt', SortDirection>>;
 
-const INCLUDE = {
+export const PROJECT_INCLUDE = {
   coverImage: true,
   ogImage: true,
   gallery: { include: { media: true }, orderBy: { sortOrder: 'asc' } },
@@ -51,11 +51,11 @@ export class ProjectsRepository implements ContentRepository<ProjectRow, Project
   constructor(private readonly database: PrismaService) {}
 
   findAll(): Promise<ProjectRow[]> {
-    return this.database.project.findMany({ include: INCLUDE, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }] });
+    return this.database.project.findMany({ include: PROJECT_INCLUDE, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }] });
   }
 
   findById(id: string): Promise<ProjectRow | null> {
-    return this.database.project.findUnique({ where: { id }, include: INCLUDE });
+    return this.database.project.findUnique({ where: { id }, include: PROJECT_INCLUDE });
   }
 
   async findPage(
@@ -74,7 +74,7 @@ export class ProjectsRepository implements ContentRepository<ProjectRow, Project
       }),
     };
     const [items, total] = await this.database.$transaction([
-      this.database.project.findMany({ where, orderBy, include: INCLUDE, ...toSkipTake(page) }),
+      this.database.project.findMany({ where, orderBy, include: PROJECT_INCLUDE, ...toSkipTake(page) }),
       this.database.project.count({ where }),
     ]);
     return { items, total };
@@ -83,7 +83,7 @@ export class ProjectsRepository implements ContentRepository<ProjectRow, Project
   create({ galleryImageIds, ...data }: ProjectData): Promise<ProjectRow> {
     return this.database.project.create({
       data: { ...data, gallery: { create: galleryLinks(galleryImageIds) } },
-      include: INCLUDE,
+      include: PROJECT_INCLUDE,
     });
   }
 
@@ -91,7 +91,7 @@ export class ProjectsRepository implements ContentRepository<ProjectRow, Project
     return this.database.project.update({
       where: { id },
       data: { ...data, ...(galleryImageIds && { gallery: { deleteMany: {}, create: galleryLinks(galleryImageIds) } }) },
-      include: INCLUDE,
+      include: PROJECT_INCLUDE,
     });
   }
 

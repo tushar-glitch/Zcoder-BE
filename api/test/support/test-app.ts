@@ -18,6 +18,9 @@ import { ProjectsRepository } from '../../src/modules/content/projects/projects.
 import { ServicesRepository } from '../../src/modules/content/services/services.repository.js';
 import { TestimonialsRepository } from '../../src/modules/content/testimonials/testimonials.repository.js';
 import { HeroRepository } from '../../src/modules/hero/hero.repository.js';
+import { DashboardRepository } from '../../src/modules/dashboard/dashboard.repository.js';
+import { PublicRepository } from '../../src/modules/public/public.repository.js';
+import { InquiriesRepository } from '../../src/modules/inquiries/inquiries.repository.js';
 import { MediaRepository } from '../../src/modules/media/media.repository.js';
 import { AuthorsRepository } from '../../src/modules/taxonomy/authors.repository.js';
 import { CategoriesRepository } from '../../src/modules/taxonomy/categories.repository.js';
@@ -30,6 +33,9 @@ import {
   createCategoriesRepository,
   createTagsRepository,
 } from './in-memory-blogs.js';
+import { InMemoryDashboardRepository } from './in-memory-dashboard.js';
+import { InMemoryPublicRepository } from './in-memory-public.js';
+import { InMemoryInquiriesRepository } from './in-memory-inquiries.js';
 import { InMemoryAuditRepository, InMemoryFileStorage, InMemoryMediaRepository } from './in-memory-content.js';
 import {
   InMemoryFaqsRepository,
@@ -58,6 +64,7 @@ export interface TestApp {
   media: InMemoryMediaRepository;
   storage: InMemoryFileStorage;
   catalog: InMemoryCatalog;
+  inquiries: InMemoryInquiriesRepository;
   revalidated: string[][];
   admin: AdminClient;
   anonymous: () => ReturnType<typeof request>;
@@ -74,6 +81,13 @@ export async function createTestApp(
   const storage = new InMemoryFileStorage();
   const catalog = new InMemoryCatalog(media);
   const revalidated: string[][] = [];
+  const inquiries = new InMemoryInquiriesRepository(admins);
+  const blogs = new InMemoryBlogsRepository(catalog);
+  const services = new InMemoryServicesRepository(media);
+  const projects = new InMemoryProjectsRepository(media);
+  const testimonials = new InMemoryTestimonialsRepository(media);
+  const faqs = new InMemoryFaqsRepository();
+  const heroes = new InMemoryHeroRepository(media);
   await admins.create({
     name: 'Zoy Admin',
     email: ADMIN_EMAIL,
@@ -104,17 +118,23 @@ export async function createTestApp(
     .overrideProvider(AuthorsRepository)
     .useValue(new InMemoryAuthorsRepository(catalog))
     .overrideProvider(BlogsRepository)
-    .useValue(new InMemoryBlogsRepository(catalog))
+    .useValue(blogs)
     .overrideProvider(ServicesRepository)
-    .useValue(new InMemoryServicesRepository(media))
+    .useValue(services)
     .overrideProvider(ProjectsRepository)
-    .useValue(new InMemoryProjectsRepository(media))
+    .useValue(projects)
     .overrideProvider(TestimonialsRepository)
-    .useValue(new InMemoryTestimonialsRepository(media))
+    .useValue(testimonials)
     .overrideProvider(FaqsRepository)
-    .useValue(new InMemoryFaqsRepository())
+    .useValue(faqs)
     .overrideProvider(HeroRepository)
-    .useValue(new InMemoryHeroRepository(media))
+    .useValue(heroes)
+    .overrideProvider(PublicRepository)
+    .useValue(new InMemoryPublicRepository(heroes, services, projects, testimonials, faqs, blogs, catalog))
+    .overrideProvider(InquiriesRepository)
+    .useValue(inquiries)
+    .overrideProvider(DashboardRepository)
+    .useValue(new InMemoryDashboardRepository(inquiries, catalog))
     .overrideProvider(RevalidationService)
     .useValue({ revalidate: (tags: string[]) => revalidated.push(tags) });
 
@@ -136,6 +156,7 @@ export async function createTestApp(
     media,
     storage,
     catalog,
+    inquiries,
     revalidated,
     admin: {
       get: (url) => authorised(request(server).get(url)),

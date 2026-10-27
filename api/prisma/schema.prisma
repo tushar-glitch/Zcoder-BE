@@ -26,6 +26,7 @@ model Admin {
   sessions            AdminSession[]
   passwordResetTokens PasswordResetToken[]
   auditLogs           AuditLog[]
+  inquiryReplies      InquiryReply[]
 
   @@map("admins")
 }
@@ -308,4 +309,69 @@ model Faq {
 
   @@index([isPublished, sortOrder])
   @@map("faqs")
+}
+
+enum InquiryType {
+  CONTACT
+  PROJECT
+}
+
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  REPLIED
+}
+
+enum InquirySource {
+  WEB
+  MOBILE
+}
+
+enum ReplyDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Inquiry {
+  id              String         @id @default(uuid()) @db.Uuid
+  type            InquiryType
+  name            String
+  email           String
+  subject         String?
+  message         String
+  company         String?
+  phone           String?
+  serviceInterest String?        @map("service_interest")
+  budgetRange     String?        @map("budget_range")
+  timeline        String?
+  source          InquirySource  @default(WEB)
+  sourcePage      String?        @map("source_page")
+  status          InquiryStatus  @default(NEW)
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  replies         InquiryReply[]
+
+  @@index([status, createdAt])
+  @@index([email, createdAt])
+  @@map("inquiries")
+}
+
+model InquiryReply {
+  id             String              @id @default(uuid()) @db.Uuid
+  inquiryId      String              @map("inquiry_id") @db.Uuid
+  inquiry        Inquiry             @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  subject        String
+  body           String
+  deliveryStatus ReplyDeliveryStatus @default(PENDING) @map("delivery_status")
+  errorMessage   String?             @map("error_message")
+  attempts       Int                 @default(0)
+  sentAt         DateTime?           @map("sent_at")
+  sentById       String?             @map("sent_by_id") @db.Uuid
+  sentBy         Admin?              @relation(fields: [sentById], references: [id], onDelete: SetNull)
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  @@index([inquiryId])
+  @@index([deliveryStatus])
+  @@map("inquiry_replies")
 }
