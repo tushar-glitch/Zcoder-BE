@@ -83,6 +83,105 @@ model Media {
   width      Int
   height     Int
   createdAt  DateTime @default(now()) @map("created_at")
+  coverBlogs Blog[]   @relation("BlogCover")
+  ogBlogs    Blog[]   @relation("BlogOg")
+  authors    Author[]
 
   @@map("media")
+}
+
+model Category {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  blogs       Blog[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  blogs       BlogTag[]
+
+  @@map("tags")
+}
+
+model Author {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  bio       String?
+  avatarId  String?  @map("avatar_id") @db.Uuid
+  avatar    Media?   @relation(fields: [avatarId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  blogs     Blog[]
+
+  @@map("authors")
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Blog {
+  id             String            @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String            @unique
+  excerpt        String?
+  contentJson    Json?             @map("content_json")
+  contentHtml    String?           @map("content_html")
+  coverImageId   String?           @map("cover_image_id") @db.Uuid
+  coverImage     Media?            @relation("BlogCover", fields: [coverImageId], references: [id], onDelete: Restrict)
+  ogImageId      String?           @map("og_image_id") @db.Uuid
+  ogImage        Media?            @relation("BlogOg", fields: [ogImageId], references: [id], onDelete: Restrict)
+  categoryId     String?           @map("category_id") @db.Uuid
+  category       Category?         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  authorId       String?           @map("author_id") @db.Uuid
+  author         Author?           @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  status         BlogStatus        @default(DRAFT)
+  publishedAt    DateTime?         @map("published_at")
+  seoTitle       String?           @map("seo_title")
+  seoDescription String?           @map("seo_description")
+  readingTimeMin Int               @default(0) @map("reading_time_min")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  tags           BlogTag[]
+  slugHistory    BlogSlugHistory[]
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([authorId])
+  @@map("blogs")
+}
+
+model BlogTag {
+  blogId String @map("blog_id") @db.Uuid
+  blog   Blog   @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  tagId  String @map("tag_id") @db.Uuid
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([blogId, tagId])
+  @@index([tagId])
+  @@map("blog_tags")
+}
+
+model BlogSlugHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  blogId    String   @map("blog_id") @db.Uuid
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([blogId])
+  @@map("blog_slug_history")
 }

@@ -9,14 +9,17 @@ import { RateLimitModule } from './common/rate-limit/rate-limit.module.js';
 import { validateEnvironment } from './config/environment.js';
 import { DatabaseModule } from './infrastructure/database/database.module.js';
 import { MailModule } from './infrastructure/mail/mail.module.js';
+import { RevalidationModule } from './infrastructure/revalidation/revalidation.module.js';
 import { StorageModule } from './infrastructure/storage/storage.module.js';
 import { AuditInterceptor } from './modules/audit/audit.interceptor.js';
 import { AuditModule } from './modules/audit/audit.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { BlogsModule } from './modules/blogs/blogs.module.js';
 import { AuthGuard } from './modules/auth/guards/auth.guard.js';
 import { OriginGuard } from './modules/auth/guards/origin.guard.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { MediaModule } from './modules/media/media.module.js';
+import { TaxonomyModule } from './modules/taxonomy/taxonomy.module.js';
 
 @Module({
   imports: [
@@ -26,8 +29,11 @@ import { MediaModule } from './modules/media/media.module.js';
     StorageModule,
     RateLimitModule,
     AuditModule,
+    RevalidationModule,
     AuthModule,
     MediaModule,
+    TaxonomyModule,
+    BlogsModule,
     HealthModule,
   ],
   providers: [

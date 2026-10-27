@@ -74,6 +74,10 @@ export class Environment {
 
   @IsUrl({ require_tld: false })
   MEDIA_BASE_URL: string;
+
+  @IsString()
+  @MinLength(32)
+  REVALIDATE_SECRET: string;
 }
 
 export function validateEnvironment(raw: Record<string, unknown>): Environment {

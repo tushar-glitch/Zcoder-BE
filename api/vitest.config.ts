@@ -11,6 +11,7 @@ export default defineConfig({
       INTERNAL_SECRET: 'an-internal-test-secret-of-32-chars-min',
       MAIL_FROM: 'ZoyCoders <no-reply@zoycoders.test>',
       MEDIA_BASE_URL: 'http://localhost:4000/uploads',
+      REVALIDATE_SECRET: 'a-revalidate-secret-of-at-least-32-chars',
     },
   },
 });

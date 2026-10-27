@@ -1,9 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import sharp from 'sharp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { FileStorage } from '../src/infrastructure/storage/file-storage.js';
-import { MediaRepository } from '../src/modules/media/media.repository.js';
-import { InMemoryFileStorage, InMemoryMediaRepository } from './support/in-memory-content.js';
+import type { InMemoryFileStorage, InMemoryMediaRepository } from './support/in-memory-content.js';
 import { createTestApp, TestApp } from './support/test-app.js';
 
 const png = (width = 2000, height = 1000): Promise<Buffer> =>
@@ -15,11 +13,8 @@ describe('admin media', () => {
   let media: InMemoryMediaRepository;
 
   beforeEach(async () => {
-    storage = new InMemoryFileStorage();
-    media = new InMemoryMediaRepository();
-    testApp = await createTestApp((builder) =>
-      builder.overrideProvider(FileStorage).useValue(storage).overrideProvider(MediaRepository).useValue(media),
-    );
+    testApp = await createTestApp();
+    ({ storage, media } = testApp);
   });
 
   afterEach(() => testApp.close());
