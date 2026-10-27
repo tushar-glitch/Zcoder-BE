@@ -74,18 +74,24 @@ model AuditLog {
 }
 
 model Media {
-  id         String   @id @default(uuid()) @db.Uuid
-  fileName   String   @map("file_name")
-  altText    String   @map("alt_text")
-  storageKey String   @unique @map("storage_key")
-  mimeType   String   @map("mime_type")
-  sizeBytes  Int      @map("size_bytes")
-  width      Int
-  height     Int
-  createdAt  DateTime @default(now()) @map("created_at")
-  coverBlogs Blog[]   @relation("BlogCover")
-  ogBlogs    Blog[]   @relation("BlogOg")
-  authors    Author[]
+  id                 String         @id @default(uuid()) @db.Uuid
+  fileName           String         @map("file_name")
+  altText            String         @map("alt_text")
+  storageKey         String         @unique @map("storage_key")
+  mimeType           String         @map("mime_type")
+  sizeBytes          Int            @map("size_bytes")
+  width              Int
+  height             Int
+  createdAt          DateTime       @default(now()) @map("created_at")
+  coverBlogs         Blog[]         @relation("BlogCover")
+  ogBlogs            Blog[]         @relation("BlogOg")
+  authors            Author[]
+  heroes             Hero[]
+  serviceOgs         Service[]      @relation("ServiceOg")
+  projectCovers      Project[]      @relation("ProjectCover")
+  projectOgs         Project[]      @relation("ProjectOg")
+  projectGalleries   ProjectImage[]
+  testimonialAvatars Testimonial[]
 
   @@map("media")
 }
@@ -184,4 +190,122 @@ model BlogSlugHistory {
 
   @@index([blogId])
   @@map("blog_slug_history")
+}
+
+enum HeroStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Hero {
+  id                String     @id @default(uuid()) @db.Uuid
+  title             String
+  heading           String?
+  subheading        String?
+  primaryCtaLabel   String?    @map("primary_cta_label")
+  primaryCtaUrl     String?    @map("primary_cta_url")
+  secondaryCtaLabel String?    @map("secondary_cta_label")
+  secondaryCtaUrl   String?    @map("secondary_cta_url")
+  imageId           String?    @map("image_id") @db.Uuid
+  image             Media?     @relation(fields: [imageId], references: [id], onDelete: Restrict)
+  status            HeroStatus @default(DRAFT)
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("heroes")
+}
+
+model Service {
+  id               String   @id @default(uuid()) @db.Uuid
+  title            String
+  slug             String   @unique
+  icon             String?
+  shortDescription String?  @map("short_description")
+  description      String?
+  technologies     String[]
+  seoTitle         String?  @map("seo_title")
+  seoDescription   String?  @map("seo_description")
+  ogImageId        String?  @map("og_image_id") @db.Uuid
+  ogImage          Media?   @relation("ServiceOg", fields: [ogImageId], references: [id], onDelete: Restrict)
+  sortOrder        Int      @default(0) @map("sort_order")
+  isPublished      Boolean  @default(false) @map("is_published")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublished, sortOrder])
+  @@map("services")
+}
+
+model Project {
+  id             String         @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String         @unique
+  summary        String?
+  description    String?
+  technologies   String[]
+  coverImageId   String?        @map("cover_image_id") @db.Uuid
+  coverImage     Media?         @relation("ProjectCover", fields: [coverImageId], references: [id], onDelete: Restrict)
+  gallery        ProjectImage[]
+  demoUrl        String?        @map("demo_url")
+  sourceUrl      String?        @map("source_url")
+  clientName     String?        @map("client_name")
+  seoTitle       String?        @map("seo_title")
+  seoDescription String?        @map("seo_description")
+  ogImageId      String?        @map("og_image_id") @db.Uuid
+  ogImage        Media?         @relation("ProjectOg", fields: [ogImageId], references: [id], onDelete: Restrict)
+  isFeatured     Boolean        @default(false) @map("is_featured")
+  isPublished    Boolean        @default(false) @map("is_published")
+  sortOrder      Int            @default(0) @map("sort_order")
+  publishedAt    DateTime?      @map("published_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  @@index([isPublished, sortOrder])
+  @@map("projects")
+}
+
+model ProjectImage {
+  projectId String  @map("project_id") @db.Uuid
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   String  @map("media_id") @db.Uuid
+  media     Media   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  sortOrder Int     @map("sort_order")
+
+  @@id([projectId, mediaId])
+  @@map("project_images")
+}
+
+model Testimonial {
+  id             String   @id @default(uuid()) @db.Uuid
+  clientName     String   @map("client_name")
+  clientRole     String?  @map("client_role")
+  company        String?
+  quote          String
+  avatarId       String?  @map("avatar_id") @db.Uuid
+  avatar         Media?   @relation(fields: [avatarId], references: [id], onDelete: Restrict)
+  rating         Int?
+  clientApproved Boolean  @default(false) @map("client_approved")
+  isPublished    Boolean  @default(false) @map("is_published")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublished, sortOrder])
+  @@map("testimonials")
+}
+
+model Faq {
+  id          String   @id @default(uuid()) @db.Uuid
+  question    String
+  answer      String
+  group       String?
+  showOnHome  Boolean  @default(false) @map("show_on_home")
+  isPublished Boolean  @default(false) @map("is_published")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublished, sortOrder])
+  @@map("faqs")
 }

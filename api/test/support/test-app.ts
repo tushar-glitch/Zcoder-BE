@@ -13,6 +13,11 @@ import { AdminRepository } from '../../src/modules/auth/admin.repository.js';
 import { ScryptPasswordHasher } from '../../src/modules/auth/security/scrypt-password-hasher.js';
 import { SessionRepository } from '../../src/modules/auth/session.repository.js';
 import { BlogsRepository } from '../../src/modules/blogs/blogs.repository.js';
+import { FaqsRepository } from '../../src/modules/content/faqs/faqs.repository.js';
+import { ProjectsRepository } from '../../src/modules/content/projects/projects.repository.js';
+import { ServicesRepository } from '../../src/modules/content/services/services.repository.js';
+import { TestimonialsRepository } from '../../src/modules/content/testimonials/testimonials.repository.js';
+import { HeroRepository } from '../../src/modules/hero/hero.repository.js';
 import { MediaRepository } from '../../src/modules/media/media.repository.js';
 import { AuthorsRepository } from '../../src/modules/taxonomy/authors.repository.js';
 import { CategoriesRepository } from '../../src/modules/taxonomy/categories.repository.js';
@@ -26,6 +31,13 @@ import {
   createTagsRepository,
 } from './in-memory-blogs.js';
 import { InMemoryAuditRepository, InMemoryFileStorage, InMemoryMediaRepository } from './in-memory-content.js';
+import {
+  InMemoryFaqsRepository,
+  InMemoryHeroRepository,
+  InMemoryProjectsRepository,
+  InMemoryServicesRepository,
+  InMemoryTestimonialsRepository,
+} from './in-memory-site-content.js';
 
 export const ORIGIN = 'http://localhost:3000';
 export const ADMIN_EMAIL = 'admin@zoycoders.com';
@@ -93,6 +105,16 @@ export async function createTestApp(
     .useValue(new InMemoryAuthorsRepository(catalog))
     .overrideProvider(BlogsRepository)
     .useValue(new InMemoryBlogsRepository(catalog))
+    .overrideProvider(ServicesRepository)
+    .useValue(new InMemoryServicesRepository(media))
+    .overrideProvider(ProjectsRepository)
+    .useValue(new InMemoryProjectsRepository(media))
+    .overrideProvider(TestimonialsRepository)
+    .useValue(new InMemoryTestimonialsRepository(media))
+    .overrideProvider(FaqsRepository)
+    .useValue(new InMemoryFaqsRepository())
+    .overrideProvider(HeroRepository)
+    .useValue(new InMemoryHeroRepository(media))
     .overrideProvider(RevalidationService)
     .useValue({ revalidate: (tags: string[]) => revalidated.push(tags) });
 

@@ -15,9 +15,11 @@ import { AuditInterceptor } from './modules/audit/audit.interceptor.js';
 import { AuditModule } from './modules/audit/audit.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { BlogsModule } from './modules/blogs/blogs.module.js';
+import { ContentModule } from './modules/content/content.module.js';
 import { AuthGuard } from './modules/auth/guards/auth.guard.js';
 import { OriginGuard } from './modules/auth/guards/origin.guard.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { HeroModule } from './modules/hero/hero.module.js';
 import { MediaModule } from './modules/media/media.module.js';
 import { TaxonomyModule } from './modules/taxonomy/taxonomy.module.js';
 
@@ -34,6 +36,8 @@ import { TaxonomyModule } from './modules/taxonomy/taxonomy.module.js';
     MediaModule,
     TaxonomyModule,
     BlogsModule,
+    HeroModule,
+    ContentModule,
     HealthModule,
   ],
   providers: [

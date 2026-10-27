@@ -70,6 +70,10 @@ export class InMemoryMediaRepository {
     return this.items.get(id) ?? null;
   }
 
+  async findExistingIds(ids: string[]): Promise<Set<string>> {
+    return new Set(ids.filter((id) => this.items.has(id)));
+  }
+
   async findPage({ q, orderBy }: MediaQuery, { page, pageSize }: PageRequest) {
     const needle = q?.toLowerCase();
     const [[field, direction]] = Object.entries(orderBy) as [['createdAt' | 'fileName', 'asc' | 'desc']];

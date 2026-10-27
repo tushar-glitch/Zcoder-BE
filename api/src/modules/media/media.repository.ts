@@ -32,6 +32,11 @@ export class MediaRepository {
     return this.database.media.findUnique({ where: { id } });
   }
 
+  async findExistingIds(ids: string[]): Promise<Set<string>> {
+    const rows = await this.database.media.findMany({ where: { id: { in: ids } }, select: { id: true } });
+    return new Set(rows.map(({ id }) => id));
+  }
+
   async findPage({ q, orderBy }: MediaQuery, page: PageRequest): Promise<{ items: Media[]; total: number }> {
     const where: Prisma.MediaWhereInput = q
       ? {
